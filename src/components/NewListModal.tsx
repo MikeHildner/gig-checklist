@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.4 },
   btnText: {
-    color: '#fff',
+    color: theme.colors.onPrimary,
     fontSize: theme.font.md,
     fontWeight: '700',
   },

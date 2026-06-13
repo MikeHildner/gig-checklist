@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: theme.font.md,
     fontWeight: '600',
-    color: theme.colors.primary,
+    color: theme.colors.primaryText,
   },
   destructive: {
     color: theme.colors.danger,

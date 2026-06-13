@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   chipTextActive: {
-    color: theme.colors.primary,
+    color: theme.colors.primaryText,
     fontWeight: '600',
   },
   row: {
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
   },
   addCatBtnText: {
-    color: '#fff',
+    color: theme.colors.onPrimary,
     fontWeight: '600',
     fontSize: theme.font.md,
   },
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   btnText: {
-    color: '#fff',
+    color: theme.colors.onPrimary,
     fontSize: theme.font.md,
     fontWeight: '700',
   },

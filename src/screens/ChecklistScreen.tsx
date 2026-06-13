@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   addBtnText: {
     fontSize: theme.font.md,
     fontWeight: '700',
-    color: '#fff',
+    color: theme.colors.onPrimary,
   },
   empty: {
     alignItems: 'center',

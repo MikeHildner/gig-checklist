@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionSheet } from '../components/ActionSheet';
 import { ChecklistCard } from '../components/ChecklistCard';
 import { EditNameModal } from '../components/EditNameModal';
+import { Logo } from '../components/Logo';
 import { NewListModal } from '../components/NewListModal';
 import { theme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
@@ -20,33 +21,39 @@ export function HomeScreen({ navigation }: Props) {
   const [renameTarget, setRenameTarget] = useState<GigChecklist | null>(null);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>My Checklists</Text>
-        <Pressable style={styles.addBtn} onPress={() => setShowNew(true)}>
-          <Text style={styles.addBtnText}>+ New</Text>
-        </Pressable>
-      </View>
-
-      {!loading && lists.length === 0 && (
-        <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>No checklists yet</Text>
-          <Text style={styles.emptySub}>Tap "+ New" to create your first gig list.</Text>
+    <View style={styles.root}>
+      <SafeAreaView style={styles.safeTop} edges={['top']}>
+        <View style={styles.header}>
+          <Logo />
+          <Pressable style={styles.addBtn} onPress={() => setShowNew(true)}>
+            <Text style={styles.addBtnText}>+ New</Text>
+          </Pressable>
         </View>
-      )}
+      </SafeAreaView>
 
-      <FlatList
-        data={lists}
-        keyExtractor={(l) => l.id}
-        renderItem={({ item }) => (
-          <ChecklistCard
-            list={item}
-            onPress={() => navigation.navigate('Checklist', { listId: item.id })}
-            onLongPress={() => setMenuList(item)}
-          />
+      <View style={styles.content}>
+        <Text style={styles.sectionLabel}>My Checklists</Text>
+
+        {!loading && lists.length === 0 && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No checklists yet</Text>
+            <Text style={styles.emptySub}>Tap "+ New" to create your first gig list.</Text>
+          </View>
         )}
-        contentContainerStyle={styles.list}
-      />
+
+        <FlatList
+          data={lists}
+          keyExtractor={(l) => l.id}
+          renderItem={({ item }) => (
+            <ChecklistCard
+              list={item}
+              onPress={() => navigation.navigate('Checklist', { listId: item.id })}
+              onLongPress={() => setMenuList(item)}
+            />
+          )}
+          contentContainerStyle={styles.list}
+        />
+      </View>
 
       <NewListModal
         visible={showNew}
@@ -95,26 +102,40 @@ export function HomeScreen({ navigation }: Props) {
         }}
         onClose={() => setRenameTarget(null)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  root: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.brandBg,
+  },
+  safeTop: {
+    backgroundColor: theme.colors.brandBg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: 12,
   },
-  heading: {
-    fontSize: theme.font.xl,
-    fontWeight: '800',
-    color: theme.colors.text,
+  content: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.radius.lg,
+    borderTopRightRadius: theme.radius.lg,
+  },
+  sectionLabel: {
+    fontSize: theme.font.sm,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xs,
   },
   addBtn: {
     backgroundColor: theme.colors.primary,
@@ -123,8 +144,8 @@ const styles = StyleSheet.create({
     borderRadius: 99,
   },
   addBtnText: {
-    color: '#fff',
-    fontWeight: '700',
+    color: theme.colors.onPrimary,
+    fontWeight: '800',
     fontSize: theme.font.md,
   },
   list: {

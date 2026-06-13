@@ -18,9 +18,9 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
-              headerStyle: { backgroundColor: theme.colors.surface },
+              headerStyle: { backgroundColor: theme.colors.brandBg },
               headerTintColor: theme.colors.primary,
-              headerTitleStyle: { fontWeight: '700', color: theme.colors.text },
+              headerTitleStyle: { fontWeight: '700', color: theme.colors.onBrand },
               contentStyle: { backgroundColor: theme.colors.background },
             }}
           >
@@ -28,7 +28,7 @@ export default function App() {
             <Stack.Screen name="Checklist" component={ChecklistScreen} />
           </Stack.Navigator>
         </NavigationContainer>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
       </ChecklistProvider>
     </SafeAreaProvider>
   );

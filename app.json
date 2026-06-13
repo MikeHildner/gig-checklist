@@ -7,16 +7,27 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
-    "backgroundColor": "#1E293B",
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#17120B",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#17120B"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gigchecklist.app"
     },
     "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#17120B"
+      },
       "package": "com.gigchecklist.app"
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     },
     "experiments": {
       "baseUrl": "/gigchecklist"
