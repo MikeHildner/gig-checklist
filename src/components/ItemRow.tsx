@@ -6,15 +6,15 @@ import { theme } from '../constants/theme';
 interface Props {
   item: GigItem;
   onToggle: () => void;
-  onDelete: () => void;
+  onLongPress: () => void;
 }
 
-export function ItemRow({ item, onToggle, onDelete }: Props) {
+export function ItemRow({ item, onToggle, onLongPress }: Props) {
   return (
     <Pressable
       style={[styles.row, item.checked && styles.rowChecked]}
       onPress={onToggle}
-      onLongPress={onDelete}
+      onLongPress={onLongPress}
       android_ripple={{ color: theme.colors.border }}
     >
       <View style={[styles.checkbox, item.checked && styles.checkboxChecked]}>

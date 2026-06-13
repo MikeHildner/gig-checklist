@@ -1,49 +1,81 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useLayoutEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActionSheet } from '../components/ActionSheet';
 import { AddItemModal } from '../components/AddItemModal';
 import { CategorySection } from '../components/CategorySection';
+import { EditNameModal } from '../components/EditNameModal';
 import { theme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
 import { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Checklist'>;
 
+type RenameTarget =
+  | { kind: 'list'; id: string; value: string }
+  | { kind: 'item'; id: string; value: string }
+  | { kind: 'category'; id: string; value: string };
+
+const RENAME_TITLE: Record<RenameTarget['kind'], string> = {
+  list: 'Rename Checklist',
+  item: 'Rename Item',
+  category: 'Rename Category',
+};
+
 export function ChecklistScreen({ route, navigation }: Props) {
   const { listId } = route.params;
-  const { lists, toggleItem, addItem, deleteItem, addCategory, resetSession } = useChecklists();
+  const {
+    lists,
+    toggleItem,
+    addItem,
+    renameItem,
+    deleteItem,
+    addCategory,
+    renameCategory,
+    deleteCategory,
+    renameList,
+    resetSession,
+  } = useChecklists();
   const list = lists.find((l) => l.id === listId);
 
   const [showAdd, setShowAdd] = useState(false);
+  const [itemMenu, setItemMenu] = useState<{ id: string; label: string } | null>(null);
+  const [categoryMenu, setCategoryMenu] = useState<{ id: string; name: string } | null>(null);
+  const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
+  const listName = list?.name;
   useLayoutEffect(() => {
-    if (!list) return;
-    navigation.setOptions({ title: list.name });
-  }, [list?.name]);
+    if (!listName) return;
+    navigation.setOptions({
+      title: listName,
+      headerRight: () => (
+        <Pressable
+          hitSlop={8}
+          onPress={() => setRenameTarget({ kind: 'list', id: listId, value: listName })}
+        >
+          <Text style={styles.headerBtnText}>Rename</Text>
+        </Pressable>
+      ),
+    });
+  }, [listName, listId, navigation]);
 
   if (!list) return null;
 
   const total = list.items.length;
   const checked = list.items.filter((i) => i.checked).length;
 
-  function handleReset() {
-    Alert.alert('Reset Session', 'Uncheck all items and start fresh?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reset', style: 'destructive', onPress: () => resetSession(listId) },
-    ]);
-  }
-
-  function handleDeleteItem(itemId: string) {
-    Alert.alert('Remove Item', 'Remove this item from the list?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => deleteItem(listId, itemId) },
-    ]);
-  }
-
   const uncategorisedItems = list.items.filter(
     (i) => !list.categories.find((c) => c.id === i.categoryId)
   );
+
+  function handleRenameSave(value: string) {
+    if (!renameTarget) return;
+    if (renameTarget.kind === 'list') renameList(listId, value);
+    else if (renameTarget.kind === 'item') renameItem(listId, renameTarget.id, value);
+    else renameCategory(listId, renameTarget.id, value);
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -75,7 +107,11 @@ export function ChecklistScreen({ route, navigation }: Props) {
               category={cat}
               items={catItems}
               onToggle={(itemId) => toggleItem(listId, itemId)}
-              onDelete={handleDeleteItem}
+              onItemLongPress={(itemId) => {
+                const item = catItems.find((i) => i.id === itemId);
+                if (item) setItemMenu({ id: item.id, label: item.label });
+              }}
+              onCategoryLongPress={() => setCategoryMenu({ id: cat.id, name: cat.name })}
             />
           );
         })}
@@ -85,7 +121,10 @@ export function ChecklistScreen({ route, navigation }: Props) {
             category={{ id: '__uncategorised__', name: 'Other' }}
             items={uncategorisedItems}
             onToggle={(itemId) => toggleItem(listId, itemId)}
-            onDelete={handleDeleteItem}
+            onItemLongPress={(itemId) => {
+              const item = uncategorisedItems.find((i) => i.id === itemId);
+              if (item) setItemMenu({ id: item.id, label: item.label });
+            }}
           />
         )}
 
@@ -98,7 +137,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
       </ScrollView>
 
       <View style={styles.toolbar}>
-        <Pressable style={styles.resetBtn} onPress={handleReset}>
+        <Pressable style={styles.resetBtn} onPress={() => setConfirmReset(true)}>
           <Text style={styles.resetBtnText}>Reset Session</Text>
         </Pressable>
         <Pressable style={styles.addBtn} onPress={() => setShowAdd(true)}>
@@ -115,6 +154,70 @@ export function ChecklistScreen({ route, navigation }: Props) {
         onAddCategory={(name) => addCategory(listId, name)}
         onClose={() => setShowAdd(false)}
       />
+
+      {/* Long-press an item → Rename / Delete */}
+      <ActionSheet
+        visible={itemMenu !== null}
+        title={itemMenu?.label}
+        actions={[
+          {
+            label: 'Rename',
+            onPress: () => {
+              if (itemMenu) setRenameTarget({ kind: 'item', id: itemMenu.id, value: itemMenu.label });
+            },
+          },
+          {
+            label: 'Delete',
+            destructive: true,
+            onPress: () => {
+              if (itemMenu) deleteItem(listId, itemMenu.id);
+            },
+          },
+        ]}
+        onClose={() => setItemMenu(null)}
+      />
+
+      {/* Long-press a category header → Rename / Delete */}
+      <ActionSheet
+        visible={categoryMenu !== null}
+        title={categoryMenu?.name}
+        message="Deleting a category keeps its items, moving them to “Other”."
+        actions={[
+          {
+            label: 'Rename',
+            onPress: () => {
+              if (categoryMenu)
+                setRenameTarget({ kind: 'category', id: categoryMenu.id, value: categoryMenu.name });
+            },
+          },
+          {
+            label: 'Delete category',
+            destructive: true,
+            onPress: () => {
+              if (categoryMenu) deleteCategory(listId, categoryMenu.id);
+            },
+          },
+        ]}
+        onClose={() => setCategoryMenu(null)}
+      />
+
+      <ActionSheet
+        visible={confirmReset}
+        title="Reset session?"
+        message="Unchecks every item so you can pack fresh."
+        actions={[
+          { label: 'Reset', destructive: true, onPress: () => resetSession(listId) },
+        ]}
+        onClose={() => setConfirmReset(false)}
+      />
+
+      <EditNameModal
+        visible={renameTarget !== null}
+        title={renameTarget ? RENAME_TITLE[renameTarget.kind] : ''}
+        initialValue={renameTarget?.value ?? ''}
+        onSave={handleRenameSave}
+        onClose={() => setRenameTarget(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -123,6 +226,11 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  headerBtnText: {
+    fontSize: theme.font.md,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
   progressBar: {
     height: 4,

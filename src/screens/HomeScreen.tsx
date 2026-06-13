@@ -1,25 +1,23 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActionSheet } from '../components/ActionSheet';
 import { ChecklistCard } from '../components/ChecklistCard';
+import { EditNameModal } from '../components/EditNameModal';
 import { NewListModal } from '../components/NewListModal';
 import { theme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
-import { RootStackParamList } from '../types';
+import { GigChecklist, RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
-  const { lists, createList, deleteList, loading } = useChecklists();
+  const { lists, createList, renameList, deleteList, loading } = useChecklists();
   const [showNew, setShowNew] = useState(false);
-
-  function handleDelete(id: string, name: string) {
-    Alert.alert('Delete Checklist', `Delete "${name}"? This cannot be undone.`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteList(id) },
-    ]);
-  }
+  const [menuList, setMenuList] = useState<GigChecklist | null>(null);
+  const [confirmDeleteList, setConfirmDeleteList] = useState<GigChecklist | null>(null);
+  const [renameTarget, setRenameTarget] = useState<GigChecklist | null>(null);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -44,7 +42,7 @@ export function HomeScreen({ navigation }: Props) {
           <ChecklistCard
             list={item}
             onPress={() => navigation.navigate('Checklist', { listId: item.id })}
-            onDelete={() => handleDelete(item.id, item.name)}
+            onLongPress={() => setMenuList(item)}
           />
         )}
         contentContainerStyle={styles.list}
@@ -54,6 +52,48 @@ export function HomeScreen({ navigation }: Props) {
         visible={showNew}
         onCreate={createList}
         onClose={() => setShowNew(false)}
+      />
+
+      {/* Long-press a card → Rename / Delete */}
+      <ActionSheet
+        visible={menuList !== null}
+        title={menuList?.name}
+        actions={[
+          { label: 'Rename', onPress: () => setRenameTarget(menuList) },
+          {
+            label: 'Delete',
+            destructive: true,
+            onPress: () => setConfirmDeleteList(menuList),
+          },
+        ]}
+        onClose={() => setMenuList(null)}
+      />
+
+      <ActionSheet
+        visible={confirmDeleteList !== null}
+        title={`Delete "${confirmDeleteList?.name}"?`}
+        message="This removes the checklist and all its items. This cannot be undone."
+        actions={[
+          {
+            label: 'Delete checklist',
+            destructive: true,
+            onPress: () => {
+              if (confirmDeleteList) deleteList(confirmDeleteList.id);
+            },
+          },
+        ]}
+        onClose={() => setConfirmDeleteList(null)}
+      />
+
+      <EditNameModal
+        visible={renameTarget !== null}
+        title="Rename Checklist"
+        initialValue={renameTarget?.name ?? ''}
+        placeholder="Checklist name"
+        onSave={(name) => {
+          if (renameTarget) renameList(renameTarget.id, name);
+        }}
+        onClose={() => setRenameTarget(null)}
       />
     </SafeAreaView>
   );

@@ -6,10 +6,10 @@ import { theme } from '../constants/theme';
 interface Props {
   list: GigChecklist;
   onPress: () => void;
-  onDelete: () => void;
+  onLongPress: () => void;
 }
 
-export function ChecklistCard({ list, onPress, onDelete }: Props) {
+export function ChecklistCard({ list, onPress, onLongPress }: Props) {
   const total = list.items.length;
   const checked = list.items.filter((i) => i.checked).length;
   const pct = total === 0 ? 0 : checked / total;
@@ -19,7 +19,7 @@ export function ChecklistCard({ list, onPress, onDelete }: Props) {
     <Pressable
       style={styles.card}
       onPress={onPress}
-      onLongPress={onDelete}
+      onLongPress={onLongPress}
       android_ripple={{ color: theme.colors.border }}
     >
       <View style={styles.top}>

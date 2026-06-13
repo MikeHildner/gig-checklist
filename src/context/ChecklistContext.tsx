@@ -7,11 +7,15 @@ interface ChecklistContextValue {
   lists: GigChecklist[];
   loading: boolean;
   createList: (name: string) => void;
+  renameList: (listId: string, name: string) => void;
   deleteList: (listId: string) => void;
   toggleItem: (listId: string, itemId: string) => void;
   addItem: (listId: string, label: string, categoryId: string) => void;
+  renameItem: (listId: string, itemId: string, label: string) => void;
   deleteItem: (listId: string, itemId: string) => void;
   addCategory: (listId: string, name: string) => GigCategory;
+  renameCategory: (listId: string, categoryId: string, name: string) => void;
+  deleteCategory: (listId: string, categoryId: string) => void;
   resetSession: (listId: string) => void;
 }
 
@@ -44,6 +48,10 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     update([...lists, newList]);
   }
 
+  function renameList(listId: string, name: string) {
+    update(lists.map((l) => (l.id !== listId ? l : { ...l, name })));
+  }
+
   function deleteList(listId: string) {
     update(lists.filter((l) => l.id !== listId));
   }
@@ -69,6 +77,19 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  function renameItem(listId: string, itemId: string, label: string) {
+    update(
+      lists.map((l) =>
+        l.id !== listId
+          ? l
+          : {
+              ...l,
+              items: l.items.map((i) => (i.id === itemId ? { ...i, label } : i)),
+            }
+      )
+    );
+  }
+
   function deleteItem(listId: string, itemId: string) {
     update(
       lists.map((l) =>
@@ -87,6 +108,33 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     return cat;
   }
 
+  function renameCategory(listId: string, categoryId: string, name: string) {
+    update(
+      lists.map((l) =>
+        l.id !== listId
+          ? l
+          : {
+              ...l,
+              categories: l.categories.map((c) =>
+                c.id === categoryId ? { ...c, name } : c
+              ),
+            }
+      )
+    );
+  }
+
+  // Removing a category leaves its items in place; they fall back to the
+  // "Other" section (ChecklistScreen renders items whose category is missing).
+  function deleteCategory(listId: string, categoryId: string) {
+    update(
+      lists.map((l) =>
+        l.id !== listId
+          ? l
+          : { ...l, categories: l.categories.filter((c) => c.id !== categoryId) }
+      )
+    );
+  }
+
   function resetSession(listId: string) {
     update(
       lists.map((l) =>
@@ -99,7 +147,21 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ChecklistContext.Provider
-      value={{ lists, loading, createList, deleteList, toggleItem, addItem, deleteItem, addCategory, resetSession }}
+      value={{
+        lists,
+        loading,
+        createList,
+        renameList,
+        deleteList,
+        toggleItem,
+        addItem,
+        renameItem,
+        deleteItem,
+        addCategory,
+        renameCategory,
+        deleteCategory,
+        resetSession,
+      }}
     >
       {children}
     </ChecklistContext.Provider>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GigCategory, GigItem } from '../types';
 import { ItemRow } from './ItemRow';
 import { theme } from '../constants/theme';
@@ -8,26 +8,39 @@ interface Props {
   category: GigCategory;
   items: GigItem[];
   onToggle: (itemId: string) => void;
-  onDelete: (itemId: string) => void;
+  onItemLongPress: (itemId: string) => void;
+  /** Omitted for the synthetic "Other" section, which isn't a real category. */
+  onCategoryLongPress?: () => void;
 }
 
-export function CategorySection({ category, items, onToggle, onDelete }: Props) {
+export function CategorySection({
+  category,
+  items,
+  onToggle,
+  onItemLongPress,
+  onCategoryLongPress,
+}: Props) {
   const checked = items.filter((i) => i.checked).length;
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <Pressable
+        style={styles.header}
+        onLongPress={onCategoryLongPress}
+        disabled={!onCategoryLongPress}
+        android_ripple={{ color: theme.colors.border }}
+      >
         <Text style={styles.title}>{category.name.toUpperCase()}</Text>
         <Text style={styles.progress}>
           {checked}/{items.length}
         </Text>
-      </View>
+      </Pressable>
       {items.map((item) => (
         <ItemRow
           key={item.id}
           item={item}
           onToggle={() => onToggle(item.id)}
-          onDelete={() => onDelete(item.id)}
+          onLongPress={() => onItemLongPress(item.id)}
         />
       ))}
     </View>
