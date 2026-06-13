@@ -2,10 +2,11 @@
   "expo": {
     "name": "GigChecklist",
     "slug": "gig-checklist",
+    "owner": "fatstreetop",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "backgroundColor": "#1E293B",
     "ios": {
       "supportsTablet": true,
@@ -22,6 +23,11 @@
     },
     "plugins": [
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4b528238-759b-46fa-aaf7-c64a0f6554c8"
+      }
+    }
   }
 }
