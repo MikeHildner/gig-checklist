@@ -1,6 +1,10 @@
 node_modules/
 .expo/
 dist/
+
+# Generated native projects (Expo prebuild / CNG — regenerate with `expo prebuild`)
+/android/
+/ios/
 npm-debug.*
 *.jks
 *.p8
