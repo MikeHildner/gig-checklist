@@ -17,3 +17,7 @@ web-build/
 # Local Claude Code config (machine-specific paths / local settings)
 .claude/launch.json
 .claude/settings.local.json
+
+# Deployment secrets (FTP credentials) — never commit
+.env
+deploy/.env
