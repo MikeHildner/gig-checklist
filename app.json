@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "GigChecklist",
+    "slug": "gig-checklist",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "backgroundColor": "#1E293B",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gigchecklist.app"
+    },
+    "android": {
+      "package": "com.gigchecklist.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
