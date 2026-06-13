@@ -20,7 +20,24 @@ if [ ! -f "$ENV_FILE" ]; then
   echo "       Copy deploy/.env.example to deploy/.env and fill in your FTP details." >&2
   exit 1
 fi
-set -a; . "$ENV_FILE"; set +a
+# Parse the env file manually (do NOT `source` it): values are read literally,
+# so passwords with shell-special characters (\ " ) : $ etc.) work without quoting.
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in ''|'#'*) continue ;; esac      # skip blanks and comments
+  case "$line" in *=*) ;; *) continue ;; esac     # require KEY=VALUE
+  key=${line%%=*}
+  val=${line#*=}
+  key=${key//[[:space:]]/}                         # trim whitespace from key
+  # Strip one matching pair of surrounding quotes, if present.
+  case "$val" in
+    \"*\") val=${val#\"}; val=${val%\"} ;;
+    \'*\') val=${val#\'}; val=${val%\'} ;;
+  esac
+  case "$key" in
+    FTP_HOST|FTP_USER|FTP_PASS|FTP_REMOTE_DIR|FTP_PORT|FTP_SECURE|FTP_TLS_INSECURE)
+      printf -v "$key" '%s' "$val" ;;
+  esac
+done < "$ENV_FILE"
 
 : "${FTP_HOST:?Set FTP_HOST in deploy/.env}"
 : "${FTP_USER:?Set FTP_USER in deploy/.env}"
