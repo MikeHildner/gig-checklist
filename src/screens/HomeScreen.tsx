@@ -7,13 +7,19 @@ import { ChecklistCard } from '../components/ChecklistCard';
 import { EditNameModal } from '../components/EditNameModal';
 import { Logo } from '../components/Logo';
 import { NewListModal } from '../components/NewListModal';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
+import { useTheme, useThemeMode } from '../theme/ThemeContext';
 import { GigChecklist, RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+const MODE_LABEL = { system: 'Auto', light: 'Light', dark: 'Dark' } as const;
+
 export function HomeScreen({ navigation }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const { mode, cycleMode } = useThemeMode();
   const { lists, createList, renameList, duplicateList, deleteList, loading } = useChecklists();
   const [showNew, setShowNew] = useState(false);
   const [menuList, setMenuList] = useState<GigChecklist | null>(null);
@@ -25,9 +31,14 @@ export function HomeScreen({ navigation }: Props) {
       <SafeAreaView style={styles.safeTop} edges={['top']}>
         <View style={styles.header}>
           <Logo />
-          <Pressable style={styles.addBtn} onPress={() => setShowNew(true)}>
-            <Text style={styles.addBtnText}>+ New</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable style={styles.themeBtn} onPress={cycleMode} hitSlop={6}>
+              <Text style={styles.themeBtnText}>{MODE_LABEL[mode]}</Text>
+            </Pressable>
+            <Pressable style={styles.addBtn} onPress={() => setShowNew(true)}>
+              <Text style={styles.addBtnText}>+ New</Text>
+            </Pressable>
+          </View>
         </View>
       </SafeAreaView>
 
@@ -112,10 +123,28 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: theme.colors.brandBg,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  themeBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  themeBtnText: {
+    color: theme.colors.onBrand,
+    fontWeight: '600',
+    fontSize: theme.font.sm,
   },
   safeTop: {
     backgroundColor: theme.colors.brandBg,

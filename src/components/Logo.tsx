@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   size?: number;
@@ -8,6 +9,8 @@ interface Props {
 
 /** App mark + two-tone "GigChecklist" wordmark, for the branded header. */
 export function Logo({ size = 30 }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.row}>
       <Image
@@ -22,7 +25,8 @@ export function Logo({ size = 30 }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

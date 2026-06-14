@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GigChecklist } from '../types';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   list: GigChecklist;
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export function ChecklistCard({ list, onPress, onLongPress }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const total = list.items.length;
   const checked = list.items.filter((i) => i.checked).length;
   const pct = total === 0 ? 0 : checked / total;
@@ -38,7 +41,8 @@ export function ChecklistCard({ list, onPress, onLongPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,

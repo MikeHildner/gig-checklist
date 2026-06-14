@@ -2,7 +2,8 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GigCategory, GigItem } from '../types';
 import { ItemRow } from './ItemRow';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   category: GigCategory;
@@ -20,6 +21,8 @@ export function CategorySection({
   onItemLongPress,
   onCategoryLongPress,
 }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const checked = items.filter((i) => i.checked).length;
 
   return (
@@ -47,7 +50,8 @@ export function CategorySection({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   container: {
     marginBottom: theme.spacing.md,
   },

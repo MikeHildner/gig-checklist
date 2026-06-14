@@ -11,7 +11,8 @@ import {
   View,
 } from 'react-native';
 import { GigCategory } from '../types';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { QuantityStepper } from './QuantityStepper';
 
 interface Props {
@@ -23,6 +24,8 @@ interface Props {
 }
 
 export function AddItemModal({ visible, categories, onAdd, onAddCategory, onClose }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const [label, setLabel] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState('');
@@ -145,10 +148,11 @@ export function AddItemModal({ visible, categories, onAdd, onAddCategory, onClos
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   sheet: {
     backgroundColor: theme.colors.surface,

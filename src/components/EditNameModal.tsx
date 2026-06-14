@@ -9,7 +9,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -30,6 +31,8 @@ export function EditNameModal({
   onSave,
   onClose,
 }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const [value, setValue] = useState(initialValue);
 
   // Reset the field whenever the modal is (re)opened for a new target.
@@ -76,10 +79,11 @@ export function EditNameModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   sheet: {
     backgroundColor: theme.colors.surface,

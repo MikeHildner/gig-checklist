@@ -9,7 +9,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 import { GigItem } from '../types';
 import { QuantityStepper } from './QuantityStepper';
 
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export function EditItemModal({ visible, item, onSave, onClose }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const [label, setLabel] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState('');
@@ -89,10 +92,11 @@ export function EditItemModal({ visible, item, onSave, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   sheet: {
     backgroundColor: theme.colors.surface,

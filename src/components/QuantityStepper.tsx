@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   value: number;
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export function QuantityStepper({ value, onChange, min = 1 }: Props) {
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.row}>
       <Pressable
@@ -27,7 +30,8 @@ export function QuantityStepper({ value, onChange, min = 1 }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

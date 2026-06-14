@@ -7,8 +7,9 @@ import { AddItemModal } from '../components/AddItemModal';
 import { CategorySection } from '../components/CategorySection';
 import { EditItemModal } from '../components/EditItemModal';
 import { EditNameModal } from '../components/EditNameModal';
-import { theme } from '../constants/theme';
+import { AppTheme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
+import { useTheme } from '../theme/ThemeContext';
 import { GigItem, RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Checklist'>;
@@ -37,6 +38,8 @@ export function ChecklistScreen({ route, navigation }: Props) {
     resetSession,
   } = useChecklists();
   const list = lists.find((l) => l.id === listId);
+  const theme = useTheme();
+  const styles = React.useMemo(() => makeStyles(theme), [theme]);
 
   const [showAdd, setShowAdd] = useState(false);
   const [itemMenu, setItemMenu] = useState<GigItem | null>(null);
@@ -59,7 +62,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
         </Pressable>
       ),
     });
-  }, [listName, listId, navigation]);
+  }, [listName, listId, navigation, styles]);
 
   if (!list) return null;
 
@@ -228,7 +231,8 @@ export function ChecklistScreen({ route, navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: theme.colors.background,
