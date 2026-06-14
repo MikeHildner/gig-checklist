@@ -7,8 +7,10 @@ import { ChecklistCard } from '../components/ChecklistCard';
 import { EditNameModal } from '../components/EditNameModal';
 import { Logo } from '../components/Logo';
 import { NewListModal } from '../components/NewListModal';
+import { Toast } from '../components/Toast';
 import { AppTheme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
+import { useShareList } from '../hooks/useShareList';
 import { useTheme, useThemeMode } from '../theme/ThemeContext';
 import { GigChecklist, RootStackParamList } from '../types';
 
@@ -20,6 +22,7 @@ export function HomeScreen({ navigation }: Props) {
   const theme = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const { mode, cycleMode } = useThemeMode();
+  const { share, toast } = useShareList();
   const { lists, createList, renameList, duplicateList, deleteList, loading } = useChecklists();
   const [showNew, setShowNew] = useState(false);
   const [menuList, setMenuList] = useState<GigChecklist | null>(null);
@@ -85,6 +88,12 @@ export function HomeScreen({ navigation }: Props) {
             },
           },
           {
+            label: 'Share as text',
+            onPress: () => {
+              if (menuList) share(menuList);
+            },
+          },
+          {
             label: 'Delete',
             destructive: true,
             onPress: () => setConfirmDeleteList(menuList),
@@ -119,6 +128,8 @@ export function HomeScreen({ navigation }: Props) {
         }}
         onClose={() => setRenameTarget(null)}
       />
+
+      <Toast message={toast} />
     </View>
   );
 }

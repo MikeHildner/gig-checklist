@@ -7,8 +7,10 @@ import { AddItemModal } from '../components/AddItemModal';
 import { CategorySection } from '../components/CategorySection';
 import { EditItemModal } from '../components/EditItemModal';
 import { EditNameModal } from '../components/EditNameModal';
+import { Toast } from '../components/Toast';
 import { AppTheme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
+import { useShareList } from '../hooks/useShareList';
 import { useTheme } from '../theme/ThemeContext';
 import { GigItem, RootStackParamList } from '../types';
 
@@ -40,6 +42,11 @@ export function ChecklistScreen({ route, navigation }: Props) {
   const list = lists.find((l) => l.id === listId);
   const theme = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const { share, toast } = useShareList();
+
+  // Keep the latest list available to the (memoized) header button.
+  const listRef = React.useRef(list);
+  listRef.current = list;
 
   const [showAdd, setShowAdd] = useState(false);
   const [itemMenu, setItemMenu] = useState<GigItem | null>(null);
@@ -54,15 +61,25 @@ export function ChecklistScreen({ route, navigation }: Props) {
     navigation.setOptions({
       title: listName,
       headerRight: () => (
-        <Pressable
-          hitSlop={8}
-          onPress={() => setRenameTarget({ kind: 'list', id: listId, value: listName })}
-        >
-          <Text style={styles.headerBtnText}>Rename</Text>
-        </Pressable>
+        <View style={styles.headerRow}>
+          <Pressable
+            hitSlop={8}
+            onPress={() => {
+              if (listRef.current) share(listRef.current);
+            }}
+          >
+            <Text style={styles.headerBtnText}>Share</Text>
+          </Pressable>
+          <Pressable
+            hitSlop={8}
+            onPress={() => setRenameTarget({ kind: 'list', id: listId, value: listName })}
+          >
+            <Text style={styles.headerBtnText}>Rename</Text>
+          </Pressable>
+        </View>
       ),
     });
-  }, [listName, listId, navigation, styles]);
+  }, [listName, listId, navigation, styles, share]);
 
   if (!list) return null;
 
@@ -227,6 +244,8 @@ export function ChecklistScreen({ route, navigation }: Props) {
         onSave={handleRenameSave}
         onClose={() => setRenameTarget(null)}
       />
+
+      <Toast message={toast} />
     </SafeAreaView>
   );
 }
@@ -236,6 +255,11 @@ const makeStyles = (theme: AppTheme) =>
   safe: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
   },
   headerBtnText: {
     fontSize: theme.font.md,
