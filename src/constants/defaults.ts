@@ -40,4 +40,23 @@ export const defaultChecklists: GigChecklist[] = [
       'Phone stand',
     ],
   }),
+  makeList('Mike\'s List', {
+    PreGig: ['Charge IEM', 'Charge iPad for Songs', 'Charge iPad for Mixer', 'Charge Page Turner', 'Charge Video Camera', 'Charge Bluetooth Receiver'],
+    Keyboard: ['Keyboard', 'Power Cable', 'Stand', 'Cabinet Jacks', 'Wood Board', '1/4" Cables (x2)', 'Sustain Pedal (x2)'],
+    IEM: ['Transmitter', 'Receiver', 'Ears', 'XLR to 1/4" Adapter'],
+    Mixer: ['Mixer', 'Power Cable', 'Bluetooth Receiver'],
+    Mic: ['Vocal mic', 'Mic stand', 'XLR cable'],
+    Power: ['Power strip'],
+    iPads: ['iPad for Songs', 'iPad for Mixer'],
+    Gig: ['Extension Cord', 'Power Cable (x2)', '1/4" Cables (x2)', 'XLR Cable'],
+    Nighttime: ['Keyboard Lights'],
+    Accessories: [
+      'iPad Holder for Songs',
+      'iPad Holder for Mixer',
+      'Tambourine',
+      'Drink Holder',
+      'Money Gun',
+      'Keyboard Stool',
+    ],
+  }),
 ];
