@@ -1,22 +1,50 @@
-import { GigChecklist } from '../types';
+import { GigChecklist, GigItem } from '../types';
 import { uuid } from '../utils/uuid';
 
-function makeList(name: string, data: Record<string, string[]>): GigChecklist {
-  const categories = Object.keys(data).map((name) => ({ id: uuid(), name }));
+// An item is either a plain label or an object with quantity/note. A trailing
+// "(xN)" in any label is moved into the quantity, e.g. "Reeds (x4)" → Reeds ×4.
+type ItemSpec = string | { label: string; quantity?: number; note?: string };
+
+function makeItem(spec: ItemSpec, categoryId: string): GigItem {
+  const base: { label: string; quantity?: number; note?: string } =
+    typeof spec === 'string' ? { label: spec } : spec;
+  let label = base.label;
+  let quantity = base.quantity;
+
+  const match = label.match(/\s*\(x(\d+)\)\s*$/i);
+  if (match) {
+    quantity = quantity ?? parseInt(match[1], 10);
+    label = label.slice(0, match.index).trim();
+  }
+
+  return {
+    id: uuid(),
+    label,
+    categoryId,
+    checked: false,
+    quantity: quantity && quantity > 1 ? quantity : undefined,
+    note: base.note?.trim() ? base.note.trim() : undefined,
+  };
+}
+
+function makeList(name: string, data: Record<string, ItemSpec[]>): GigChecklist {
+  const categories = Object.keys(data).map((catName) => ({ id: uuid(), name: catName }));
   const items = categories.flatMap((cat) =>
-    data[cat.name].map((label) => ({
-      id: uuid(),
-      label,
-      categoryId: cat.id,
-      checked: false,
-    }))
+    data[cat.name].map((spec) => makeItem(spec, cat.id))
   );
   return { id: uuid(), name, categories, items, createdAt: Date.now() };
 }
 
 export const defaultChecklists: GigChecklist[] = [
   makeList('Jazz Gig', {
-    Instruments: ['Saxophone', 'Mouthpiece', 'Reeds (x4)', 'Ligature', 'Neck strap', 'Reed case'],
+    Instruments: [
+      { label: 'Saxophone', note: 'The Eb one!' },
+      'Mouthpiece',
+      'Reeds (x4)',
+      'Ligature',
+      'Neck strap',
+      'Reed case',
+    ],
     Cables: ['XLR mic cable', '1/4" instrument cable', 'DI box'],
     Power: ['Power strip', 'Extension cord'],
     Accessories: [

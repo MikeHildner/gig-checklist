@@ -23,6 +23,8 @@ interface ChecklistContextValue {
     itemId: string,
     fields: { label: string; quantity: number; note: string }
   ) => void;
+  moveItem: (listId: string, itemId: string, direction: 'up' | 'down') => void;
+  moveItemToCategory: (listId: string, itemId: string, categoryId: string) => void;
   deleteItem: (listId: string, itemId: string) => void;
   addCategory: (listId: string, name: string) => GigCategory;
   renameCategory: (listId: string, categoryId: string, name: string) => void;
@@ -100,12 +102,11 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     update(
       lists.map((l) => {
         if (l.id !== listId) return l;
-        return {
-          ...l,
-          items: l.items.map((item) =>
-            item.id === itemId ? { ...item, checked: !item.checked } : item
-          ),
-        };
+        const items = l.items.map((item) =>
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        const fullyPacked = items.length > 0 && items.every((i) => i.checked);
+        return { ...l, items, lastPackedAt: fullyPacked ? Date.now() : l.lastPackedAt };
       })
     );
   }
@@ -162,6 +163,54 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
               ),
             }
       )
+    );
+  }
+
+  // Reorder within a category by swapping with the nearest same-category neighbour.
+  function moveItem(listId: string, itemId: string, direction: 'up' | 'down') {
+    update(
+      lists.map((l) => {
+        if (l.id !== listId) return l;
+        const items = [...l.items];
+        const idx = items.findIndex((i) => i.id === itemId);
+        if (idx === -1) return l;
+        const catId = items[idx].categoryId;
+        let swap = -1;
+        if (direction === 'up') {
+          for (let j = idx - 1; j >= 0; j--) {
+            if (items[j].categoryId === catId) { swap = j; break; }
+          }
+        } else {
+          for (let j = idx + 1; j < items.length; j++) {
+            if (items[j].categoryId === catId) { swap = j; break; }
+          }
+        }
+        if (swap === -1) return l; // already first/last in its category
+        [items[idx], items[swap]] = [items[swap], items[idx]];
+        return { ...l, items };
+      })
+    );
+  }
+
+  // Move an item to another category, placed after that category's last item.
+  function moveItemToCategory(listId: string, itemId: string, categoryId: string) {
+    update(
+      lists.map((l) => {
+        if (l.id !== listId) return l;
+        const moved = l.items.find((i) => i.id === itemId);
+        if (!moved) return l;
+        const rest = l.items.filter((i) => i.id !== itemId);
+        let insertAt = rest.length;
+        for (let j = rest.length - 1; j >= 0; j--) {
+          if (rest[j].categoryId === categoryId) { insertAt = j + 1; break; }
+        }
+        const next = [
+          ...rest.slice(0, insertAt),
+          { ...moved, categoryId },
+          ...rest.slice(insertAt),
+        ];
+        return { ...l, items: next };
+      })
     );
   }
 
@@ -232,6 +281,8 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         toggleItem,
         addItem,
         updateItem,
+        moveItem,
+        moveItemToCategory,
         deleteItem,
         addCategory,
         renameCategory,

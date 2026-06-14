@@ -20,6 +20,8 @@ export interface GigChecklist {
   categories: GigCategory[];
   items: GigItem[];
   createdAt: number;
+  /** Set to Date.now() whenever every item becomes checked (fully packed). */
+  lastPackedAt?: number;
 }
 
 export type RootStackParamList = {

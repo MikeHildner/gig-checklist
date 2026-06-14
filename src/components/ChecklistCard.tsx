@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GigChecklist } from '../types';
 import { AppTheme } from '../constants/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { formatLastPacked } from '../utils/formatDate';
 
 interface Props {
   list: GigChecklist;
@@ -34,9 +35,14 @@ export function ChecklistCard({ list, onPress, onLongPress }: Props) {
       <View style={styles.barTrack}>
         <View style={[styles.barFill, { width: `${pct * 100}%` as any }, allDone && styles.barDone]} />
       </View>
-      <Text style={styles.sub}>
-        {list.categories.length} {list.categories.length === 1 ? 'category' : 'categories'} · {total} items
-      </Text>
+      <View style={styles.subRow}>
+        <Text style={styles.sub}>
+          {list.categories.length} {list.categories.length === 1 ? 'category' : 'categories'} · {total} items
+        </Text>
+        {list.lastPackedAt ? (
+          <Text style={styles.lastPacked}>Last packed {formatLastPacked(list.lastPackedAt)}</Text>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -93,8 +99,21 @@ const makeStyles = (theme: AppTheme) =>
   barDone: {
     backgroundColor: theme.colors.checked,
   },
+  subRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
   sub: {
+    flexShrink: 1,
     fontSize: theme.font.sm,
     color: theme.colors.textSecondary,
   },
+  lastPacked: {
+    fontSize: theme.font.sm,
+    color: theme.colors.primaryText,
+    fontWeight: '600',
+  },
 });
+

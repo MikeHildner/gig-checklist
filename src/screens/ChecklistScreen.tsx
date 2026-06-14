@@ -32,6 +32,8 @@ export function ChecklistScreen({ route, navigation }: Props) {
     toggleItem,
     addItem,
     updateItem,
+    moveItem,
+    moveItemToCategory,
     deleteItem,
     addCategory,
     renameCategory,
@@ -51,6 +53,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
   const [showAdd, setShowAdd] = useState(false);
   const [itemMenu, setItemMenu] = useState<GigItem | null>(null);
   const [editItem, setEditItem] = useState<GigItem | null>(null);
+  const [moveTarget, setMoveTarget] = useState<GigItem | null>(null);
   const [categoryMenu, setCategoryMenu] = useState<{ id: string; name: string } | null>(null);
   const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -89,6 +92,18 @@ export function ChecklistScreen({ route, navigation }: Props) {
   const uncategorisedItems = list.items.filter(
     (i) => !list.categories.find((c) => c.id === i.categoryId)
   );
+
+  // Position of the long-pressed item within its category (for move up/down).
+  const menuCatItems = itemMenu
+    ? list.items.filter((i) => i.categoryId === itemMenu.categoryId)
+    : [];
+  const menuIdx = itemMenu ? menuCatItems.findIndex((i) => i.id === itemMenu.id) : -1;
+  const itemMenuOtherCats = itemMenu
+    ? list.categories.filter((c) => c.id !== itemMenu.categoryId)
+    : [];
+  const moveTargetCats = moveTarget
+    ? list.categories.filter((c) => c.id !== moveTarget.categoryId)
+    : [];
 
   function handleRenameSave(value: string) {
     if (!renameTarget) return;
@@ -174,15 +189,21 @@ export function ChecklistScreen({ route, navigation }: Props) {
         onClose={() => setShowAdd(false)}
       />
 
-      {/* Long-press an item → Edit / Delete */}
+      {/* Long-press an item → Edit / Move / Delete */}
       <ActionSheet
         visible={itemMenu !== null}
         title={itemMenu?.label}
         actions={[
-          {
-            label: 'Edit',
-            onPress: () => setEditItem(itemMenu),
-          },
+          { label: 'Edit', onPress: () => setEditItem(itemMenu) },
+          ...(menuIdx > 0
+            ? [{ label: 'Move up', onPress: () => itemMenu && moveItem(listId, itemMenu.id, 'up') }]
+            : []),
+          ...(menuIdx !== -1 && menuIdx < menuCatItems.length - 1
+            ? [{ label: 'Move down', onPress: () => itemMenu && moveItem(listId, itemMenu.id, 'down') }]
+            : []),
+          ...(itemMenuOtherCats.length > 0
+            ? [{ label: 'Move to category…', onPress: () => setMoveTarget(itemMenu) }]
+            : []),
           {
             label: 'Delete',
             destructive: true,
@@ -192,6 +213,19 @@ export function ChecklistScreen({ route, navigation }: Props) {
           },
         ]}
         onClose={() => setItemMenu(null)}
+      />
+
+      {/* "Move to category…" → pick the destination category */}
+      <ActionSheet
+        visible={moveTarget !== null}
+        title={moveTarget ? `Move "${moveTarget.label}" to…` : ''}
+        actions={moveTargetCats.map((c) => ({
+          label: c.name,
+          onPress: () => {
+            if (moveTarget) moveItemToCategory(listId, moveTarget.id, c.id);
+          },
+        }))}
+        onClose={() => setMoveTarget(null)}
       />
 
       <EditItemModal
