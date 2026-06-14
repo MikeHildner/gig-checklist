@@ -20,9 +20,21 @@ export function ItemRow({ item, onToggle, onLongPress }: Props) {
       <View style={[styles.checkbox, item.checked && styles.checkboxChecked]}>
         {item.checked && <Text style={styles.checkmark}>✓</Text>}
       </View>
-      <Text style={[styles.label, item.checked && styles.labelChecked]}>
-        {item.label}
-      </Text>
+      <View style={styles.body}>
+        <View style={styles.labelRow}>
+          <Text style={[styles.label, item.checked && styles.labelChecked]}>
+            {item.label}
+          </Text>
+          {item.quantity && item.quantity > 1 ? (
+            <View style={styles.qtyBadge}>
+              <Text style={styles.qtyText}>×{item.quantity}</Text>
+            </View>
+          ) : null}
+        </View>
+        {item.note ? (
+          <Text style={[styles.note, item.checked && styles.noteChecked]}>{item.note}</Text>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -59,13 +71,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  label: {
+  body: {
     flex: 1,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  label: {
+    flexShrink: 1,
     fontSize: theme.font.md,
     color: theme.colors.text,
   },
   labelChecked: {
     color: theme.colors.textSecondary,
+    textDecorationLine: 'line-through',
+  },
+  qtyBadge: {
+    backgroundColor: theme.colors.primaryLight,
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 1,
+  },
+  qtyText: {
+    fontSize: theme.font.sm,
+    fontWeight: '700',
+    color: theme.colors.primaryText,
+  },
+  note: {
+    fontSize: theme.font.sm,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  noteChecked: {
     textDecorationLine: 'line-through',
   },
 });

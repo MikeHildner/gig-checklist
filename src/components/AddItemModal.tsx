@@ -12,17 +12,20 @@ import {
 } from 'react-native';
 import { GigCategory } from '../types';
 import { theme } from '../constants/theme';
+import { QuantityStepper } from './QuantityStepper';
 
 interface Props {
   visible: boolean;
   categories: GigCategory[];
-  onAdd: (label: string, categoryId: string) => void;
+  onAdd: (label: string, categoryId: string, quantity: number, note: string) => void;
   onAddCategory: (name: string) => GigCategory;
   onClose: () => void;
 }
 
 export function AddItemModal({ visible, categories, onAdd, onAddCategory, onClose }: Props) {
   const [label, setLabel] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [note, setNote] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     categories[0]?.id ?? null
   );
@@ -32,8 +35,11 @@ export function AddItemModal({ visible, categories, onAdd, onAddCategory, onClos
   function handleAdd() {
     const trimmed = label.trim();
     if (!trimmed || !selectedCategoryId) return;
-    onAdd(trimmed, selectedCategoryId);
+    onAdd(trimmed, selectedCategoryId, quantity, note);
+    // Reset for quick consecutive adds, keeping the selected category.
     setLabel('');
+    setQuantity(1);
+    setNote('');
   }
 
   function handleAddCategory() {
@@ -47,6 +53,8 @@ export function AddItemModal({ visible, categories, onAdd, onAddCategory, onClos
 
   function handleClose() {
     setLabel('');
+    setQuantity(1);
+    setNote('');
     setNewCatName('');
     setAddingCat(false);
     onClose();
@@ -110,6 +118,21 @@ export function AddItemModal({ visible, categories, onAdd, onAddCategory, onClos
           </View>
         )}
 
+        <View style={styles.qtyRow}>
+          <Text style={styles.sectionLabel}>Quantity</Text>
+          <QuantityStepper value={quantity} onChange={setQuantity} />
+        </View>
+
+        <TextInput
+          style={styles.input}
+          value={note}
+          onChangeText={setNote}
+          placeholder="Note (optional)"
+          placeholderTextColor={theme.colors.textSecondary}
+          returnKeyType="done"
+          onSubmitEditing={handleAdd}
+        />
+
         <Pressable
           style={[styles.btn, (!label.trim() || !selectedCategoryId) && styles.btnDisabled]}
           onPress={handleAdd}
@@ -153,6 +176,12 @@ const styles = StyleSheet.create({
     fontSize: theme.font.sm,
     fontWeight: '600',
     color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
+  },
+  qtyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: theme.spacing.xs,
   },
   input: {

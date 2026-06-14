@@ -5,21 +5,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionSheet } from '../components/ActionSheet';
 import { AddItemModal } from '../components/AddItemModal';
 import { CategorySection } from '../components/CategorySection';
+import { EditItemModal } from '../components/EditItemModal';
 import { EditNameModal } from '../components/EditNameModal';
 import { theme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
-import { RootStackParamList } from '../types';
+import { GigItem, RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Checklist'>;
 
 type RenameTarget =
   | { kind: 'list'; id: string; value: string }
-  | { kind: 'item'; id: string; value: string }
   | { kind: 'category'; id: string; value: string };
 
 const RENAME_TITLE: Record<RenameTarget['kind'], string> = {
   list: 'Rename Checklist',
-  item: 'Rename Item',
   category: 'Rename Category',
 };
 
@@ -29,7 +28,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
     lists,
     toggleItem,
     addItem,
-    renameItem,
+    updateItem,
     deleteItem,
     addCategory,
     renameCategory,
@@ -40,7 +39,8 @@ export function ChecklistScreen({ route, navigation }: Props) {
   const list = lists.find((l) => l.id === listId);
 
   const [showAdd, setShowAdd] = useState(false);
-  const [itemMenu, setItemMenu] = useState<{ id: string; label: string } | null>(null);
+  const [itemMenu, setItemMenu] = useState<GigItem | null>(null);
+  const [editItem, setEditItem] = useState<GigItem | null>(null);
   const [categoryMenu, setCategoryMenu] = useState<{ id: string; name: string } | null>(null);
   const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -73,7 +73,6 @@ export function ChecklistScreen({ route, navigation }: Props) {
   function handleRenameSave(value: string) {
     if (!renameTarget) return;
     if (renameTarget.kind === 'list') renameList(listId, value);
-    else if (renameTarget.kind === 'item') renameItem(listId, renameTarget.id, value);
     else renameCategory(listId, renameTarget.id, value);
   }
 
@@ -109,7 +108,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
               onToggle={(itemId) => toggleItem(listId, itemId)}
               onItemLongPress={(itemId) => {
                 const item = catItems.find((i) => i.id === itemId);
-                if (item) setItemMenu({ id: item.id, label: item.label });
+                if (item) setItemMenu(item);
               }}
               onCategoryLongPress={() => setCategoryMenu({ id: cat.id, name: cat.name })}
             />
@@ -123,7 +122,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
             onToggle={(itemId) => toggleItem(listId, itemId)}
             onItemLongPress={(itemId) => {
               const item = uncategorisedItems.find((i) => i.id === itemId);
-              if (item) setItemMenu({ id: item.id, label: item.label });
+              if (item) setItemMenu(item);
             }}
           />
         )}
@@ -148,23 +147,21 @@ export function ChecklistScreen({ route, navigation }: Props) {
       <AddItemModal
         visible={showAdd}
         categories={list.categories}
-        onAdd={(label, catId) => {
-          addItem(listId, label, catId);
+        onAdd={(label, catId, quantity, note) => {
+          addItem(listId, label, catId, quantity, note);
         }}
         onAddCategory={(name) => addCategory(listId, name)}
         onClose={() => setShowAdd(false)}
       />
 
-      {/* Long-press an item → Rename / Delete */}
+      {/* Long-press an item → Edit / Delete */}
       <ActionSheet
         visible={itemMenu !== null}
         title={itemMenu?.label}
         actions={[
           {
-            label: 'Rename',
-            onPress: () => {
-              if (itemMenu) setRenameTarget({ kind: 'item', id: itemMenu.id, value: itemMenu.label });
-            },
+            label: 'Edit',
+            onPress: () => setEditItem(itemMenu),
           },
           {
             label: 'Delete',
@@ -175,6 +172,15 @@ export function ChecklistScreen({ route, navigation }: Props) {
           },
         ]}
         onClose={() => setItemMenu(null)}
+      />
+
+      <EditItemModal
+        visible={editItem !== null}
+        item={editItem}
+        onSave={(fields) => {
+          if (editItem) updateItem(listId, editItem.id, fields);
+        }}
+        onClose={() => setEditItem(null)}
       />
 
       {/* Long-press a category header → Rename / Delete */}

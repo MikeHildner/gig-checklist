@@ -11,8 +11,18 @@ interface ChecklistContextValue {
   duplicateList: (listId: string) => void;
   deleteList: (listId: string) => void;
   toggleItem: (listId: string, itemId: string) => void;
-  addItem: (listId: string, label: string, categoryId: string) => void;
-  renameItem: (listId: string, itemId: string, label: string) => void;
+  addItem: (
+    listId: string,
+    label: string,
+    categoryId: string,
+    quantity?: number,
+    note?: string
+  ) => void;
+  updateItem: (
+    listId: string,
+    itemId: string,
+    fields: { label: string; quantity: number; note: string }
+  ) => void;
   deleteItem: (listId: string, itemId: string) => void;
   addCategory: (listId: string, name: string) => GigCategory;
   renameCategory: (listId: string, categoryId: string, name: string) => void;
@@ -100,21 +110,56 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  function addItem(listId: string, label: string, categoryId: string) {
-    const newItem: GigItem = { id: uuid(), label, categoryId, checked: false };
+  // Keep stored items lean: a quantity of 1 and an empty note are dropped.
+  function normalizeQuantity(quantity?: number): number | undefined {
+    return quantity && quantity > 1 ? quantity : undefined;
+  }
+  function normalizeNote(note?: string): string | undefined {
+    const trimmed = note?.trim();
+    return trimmed ? trimmed : undefined;
+  }
+
+  function addItem(
+    listId: string,
+    label: string,
+    categoryId: string,
+    quantity?: number,
+    note?: string
+  ) {
+    const newItem: GigItem = {
+      id: uuid(),
+      label,
+      categoryId,
+      checked: false,
+      quantity: normalizeQuantity(quantity),
+      note: normalizeNote(note),
+    };
     update(
       lists.map((l) => (l.id !== listId ? l : { ...l, items: [...l.items, newItem] }))
     );
   }
 
-  function renameItem(listId: string, itemId: string, label: string) {
+  function updateItem(
+    listId: string,
+    itemId: string,
+    fields: { label: string; quantity: number; note: string }
+  ) {
     update(
       lists.map((l) =>
         l.id !== listId
           ? l
           : {
               ...l,
-              items: l.items.map((i) => (i.id === itemId ? { ...i, label } : i)),
+              items: l.items.map((i) =>
+                i.id === itemId
+                  ? {
+                      ...i,
+                      label: fields.label,
+                      quantity: normalizeQuantity(fields.quantity),
+                      note: normalizeNote(fields.note),
+                    }
+                  : i
+              ),
             }
       )
     );
@@ -186,7 +231,7 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         deleteList,
         toggleItem,
         addItem,
-        renameItem,
+        updateItem,
         deleteItem,
         addCategory,
         renameCategory,
