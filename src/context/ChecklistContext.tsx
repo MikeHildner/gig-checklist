@@ -8,6 +8,7 @@ interface ChecklistContextValue {
   loading: boolean;
   createList: (name: string) => void;
   renameList: (listId: string, name: string) => void;
+  duplicateList: (listId: string) => void;
   deleteList: (listId: string) => void;
   toggleItem: (listId: string, itemId: string) => void;
   addItem: (listId: string, label: string, categoryId: string) => void;
@@ -50,6 +51,35 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
 
   function renameList(listId: string, name: string) {
     update(lists.map((l) => (l.id !== listId ? l : { ...l, name })));
+  }
+
+  function duplicateList(listId: string) {
+    const orig = lists.find((l) => l.id === listId);
+    if (!orig) return;
+    // Fresh ids throughout; remap each item's categoryId to the cloned category.
+    const catIdMap: Record<string, string> = {};
+    const categories = orig.categories.map((c) => {
+      const id = uuid();
+      catIdMap[c.id] = id;
+      return { ...c, id };
+    });
+    const items = orig.items.map((i) => ({
+      ...i,
+      id: uuid(),
+      categoryId: catIdMap[i.categoryId] ?? i.categoryId, // uncategorised items stay "Other"
+      checked: false,
+    }));
+    const copy: GigChecklist = {
+      id: uuid(),
+      name: `${orig.name} (copy)`,
+      categories,
+      items,
+      createdAt: Date.now(),
+    };
+    const idx = lists.findIndex((l) => l.id === listId);
+    const next = [...lists];
+    next.splice(idx + 1, 0, copy); // place the copy right after the original
+    update(next);
   }
 
   function deleteList(listId: string) {
@@ -152,6 +182,7 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         loading,
         createList,
         renameList,
+        duplicateList,
         deleteList,
         toggleItem,
         addItem,

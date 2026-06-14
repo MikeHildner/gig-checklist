@@ -14,7 +14,7 @@ import { GigChecklist, RootStackParamList } from '../types';
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props) {
-  const { lists, createList, renameList, deleteList, loading } = useChecklists();
+  const { lists, createList, renameList, duplicateList, deleteList, loading } = useChecklists();
   const [showNew, setShowNew] = useState(false);
   const [menuList, setMenuList] = useState<GigChecklist | null>(null);
   const [confirmDeleteList, setConfirmDeleteList] = useState<GigChecklist | null>(null);
@@ -67,6 +67,12 @@ export function HomeScreen({ navigation }: Props) {
         title={menuList?.name}
         actions={[
           { label: 'Rename', onPress: () => setRenameTarget(menuList) },
+          {
+            label: 'Duplicate',
+            onPress: () => {
+              if (menuList) duplicateList(menuList.id);
+            },
+          },
           {
             label: 'Delete',
             destructive: true,
