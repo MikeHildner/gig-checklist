@@ -37,6 +37,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
     deleteItem,
     addCategory,
     renameCategory,
+    moveCategory,
     deleteCategory,
     renameList,
     resetSession,
@@ -104,6 +105,11 @@ export function ChecklistScreen({ route, navigation }: Props) {
   const moveTargetCats = moveTarget
     ? list.categories.filter((c) => c.id !== moveTarget.categoryId)
     : [];
+
+  // Position of the long-pressed category (for move up/down).
+  const catMenuIdx = categoryMenu
+    ? list.categories.findIndex((c) => c.id === categoryMenu.id)
+    : -1;
 
   function handleRenameSave(value: string) {
     if (!renameTarget) return;
@@ -250,6 +256,12 @@ export function ChecklistScreen({ route, navigation }: Props) {
                 setRenameTarget({ kind: 'category', id: categoryMenu.id, value: categoryMenu.name });
             },
           },
+          ...(catMenuIdx > 0
+            ? [{ label: 'Move up', onPress: () => categoryMenu && moveCategory(listId, categoryMenu.id, 'up') }]
+            : []),
+          ...(catMenuIdx !== -1 && catMenuIdx < list.categories.length - 1
+            ? [{ label: 'Move down', onPress: () => categoryMenu && moveCategory(listId, categoryMenu.id, 'down') }]
+            : []),
           {
             label: 'Delete category',
             destructive: true,

@@ -9,6 +9,7 @@ interface ChecklistContextValue {
   createList: (name: string) => void;
   renameList: (listId: string, name: string) => void;
   duplicateList: (listId: string) => void;
+  moveList: (listId: string, direction: 'up' | 'down') => void;
   deleteList: (listId: string) => void;
   toggleItem: (listId: string, itemId: string) => void;
   addItem: (
@@ -28,6 +29,7 @@ interface ChecklistContextValue {
   deleteItem: (listId: string, itemId: string) => void;
   addCategory: (listId: string, name: string) => GigCategory;
   renameCategory: (listId: string, categoryId: string, name: string) => void;
+  moveCategory: (listId: string, categoryId: string, direction: 'up' | 'down') => void;
   deleteCategory: (listId: string, categoryId: string) => void;
   resetSession: (listId: string) => void;
 }
@@ -91,6 +93,17 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     const idx = lists.findIndex((l) => l.id === listId);
     const next = [...lists];
     next.splice(idx + 1, 0, copy); // place the copy right after the original
+    update(next);
+  }
+
+  // Reorder a checklist on the home screen by swapping with its neighbour.
+  function moveList(listId: string, direction: 'up' | 'down') {
+    const idx = lists.findIndex((l) => l.id === listId);
+    if (idx === -1) return;
+    const swap = direction === 'up' ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= lists.length) return;
+    const next = [...lists];
+    [next[idx], next[swap]] = [next[swap], next[idx]];
     update(next);
   }
 
@@ -247,6 +260,23 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Reorder a category by swapping with its neighbour (sections render in
+  // category order, so this moves the whole section up/down).
+  function moveCategory(listId: string, categoryId: string, direction: 'up' | 'down') {
+    update(
+      lists.map((l) => {
+        if (l.id !== listId) return l;
+        const categories = [...l.categories];
+        const idx = categories.findIndex((c) => c.id === categoryId);
+        if (idx === -1) return l;
+        const swap = direction === 'up' ? idx - 1 : idx + 1;
+        if (swap < 0 || swap >= categories.length) return l;
+        [categories[idx], categories[swap]] = [categories[swap], categories[idx]];
+        return { ...l, categories };
+      })
+    );
+  }
+
   // Removing a category leaves its items in place; they fall back to the
   // "Other" section (ChecklistScreen renders items whose category is missing).
   function deleteCategory(listId: string, categoryId: string) {
@@ -277,6 +307,7 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         createList,
         renameList,
         duplicateList,
+        moveList,
         deleteList,
         toggleItem,
         addItem,
@@ -286,6 +317,7 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         deleteItem,
         addCategory,
         renameCategory,
+        moveCategory,
         deleteCategory,
         resetSession,
       }}

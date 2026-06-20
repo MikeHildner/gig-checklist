@@ -23,11 +23,14 @@ export function HomeScreen({ navigation }: Props) {
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const { mode, cycleMode } = useThemeMode();
   const { share, toast } = useShareList();
-  const { lists, createList, renameList, duplicateList, deleteList, loading } = useChecklists();
+  const { lists, createList, renameList, duplicateList, moveList, deleteList, loading } =
+    useChecklists();
   const [showNew, setShowNew] = useState(false);
   const [menuList, setMenuList] = useState<GigChecklist | null>(null);
   const [confirmDeleteList, setConfirmDeleteList] = useState<GigChecklist | null>(null);
   const [renameTarget, setRenameTarget] = useState<GigChecklist | null>(null);
+
+  const menuListIdx = menuList ? lists.findIndex((l) => l.id === menuList.id) : -1;
 
   return (
     <View style={styles.root}>
@@ -81,6 +84,12 @@ export function HomeScreen({ navigation }: Props) {
         title={menuList?.name}
         actions={[
           { label: 'Rename', onPress: () => setRenameTarget(menuList) },
+          ...(menuListIdx > 0
+            ? [{ label: 'Move up', onPress: () => menuList && moveList(menuList.id, 'up') }]
+            : []),
+          ...(menuListIdx !== -1 && menuListIdx < lists.length - 1
+            ? [{ label: 'Move down', onPress: () => menuList && moveList(menuList.id, 'down') }]
+            : []),
           {
             label: 'Duplicate',
             onPress: () => {
