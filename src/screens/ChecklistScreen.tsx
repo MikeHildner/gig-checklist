@@ -10,6 +10,7 @@ import { EditNameModal } from '../components/EditNameModal';
 import { Toast } from '../components/Toast';
 import { AppTheme } from '../constants/theme';
 import { useChecklists } from '../context/ChecklistContext';
+import { isComplete } from '../utils/itemStatus';
 import { useShareList } from '../hooks/useShareList';
 import { useTheme } from '../theme/ThemeContext';
 import { GigItem, RootStackParamList } from '../types';
@@ -30,6 +31,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
   const {
     lists,
     toggleItem,
+    toggleOnSite,
     addItem,
     updateItem,
     moveItem,
@@ -88,7 +90,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
   if (!list) return null;
 
   const total = list.items.length;
-  const checked = list.items.filter((i) => i.checked).length;
+  const done = list.items.filter(isComplete).length;
 
   const uncategorisedItems = list.items.filter(
     (i) => !list.categories.find((c) => c.id === i.categoryId)
@@ -123,16 +125,16 @@ export function ChecklistScreen({ route, navigation }: Props) {
         <View
           style={[
             styles.progressFill,
-            { width: `${total === 0 ? 0 : (checked / total) * 100}%` as any },
-            checked === total && total > 0 && styles.progressDone,
+            { width: `${total === 0 ? 0 : (done / total) * 100}%` as any },
+            done === total && total > 0 && styles.progressDone,
           ]}
         />
       </View>
       <View style={styles.progressLabel}>
         <Text style={styles.progressText}>
-          {checked} of {total} packed
+          {done} of {total} ready
         </Text>
-        {checked === total && total > 0 && (
+        {done === total && total > 0 && (
           <Text style={styles.readyBadge}>Ready to go!</Text>
         )}
       </View>
@@ -147,6 +149,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
               category={cat}
               items={catItems}
               onToggle={(itemId) => toggleItem(listId, itemId)}
+              onToggleOnSite={(itemId) => toggleOnSite(listId, itemId)}
               onItemLongPress={(itemId) => {
                 const item = catItems.find((i) => i.id === itemId);
                 if (item) setItemMenu(item);
@@ -161,6 +164,7 @@ export function ChecklistScreen({ route, navigation }: Props) {
             category={{ id: '__uncategorised__', name: 'Other' }}
             items={uncategorisedItems}
             onToggle={(itemId) => toggleItem(listId, itemId)}
+            onToggleOnSite={(itemId) => toggleOnSite(listId, itemId)}
             onItemLongPress={(itemId) => {
               const item = uncategorisedItems.find((i) => i.id === itemId);
               if (item) setItemMenu(item);

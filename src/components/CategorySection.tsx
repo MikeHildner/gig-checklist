@@ -4,11 +4,13 @@ import { GigCategory, GigItem } from '../types';
 import { ItemRow } from './ItemRow';
 import { AppTheme } from '../constants/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { isComplete } from '../utils/itemStatus';
 
 interface Props {
   category: GigCategory;
   items: GigItem[];
   onToggle: (itemId: string) => void;
+  onToggleOnSite: (itemId: string) => void;
   onItemLongPress: (itemId: string) => void;
   /** Omitted for the synthetic "Other" section, which isn't a real category. */
   onCategoryLongPress?: () => void;
@@ -18,12 +20,13 @@ export function CategorySection({
   category,
   items,
   onToggle,
+  onToggleOnSite,
   onItemLongPress,
   onCategoryLongPress,
 }: Props) {
   const theme = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
-  const checked = items.filter((i) => i.checked).length;
+  const done = items.filter(isComplete).length;
 
   return (
     <View style={styles.container}>
@@ -35,7 +38,7 @@ export function CategorySection({
       >
         <Text style={styles.title}>{category.name.toUpperCase()}</Text>
         <Text style={styles.progress}>
-          {checked}/{items.length}
+          {done}/{items.length}
         </Text>
       </Pressable>
       {items.map((item) => (
@@ -43,6 +46,7 @@ export function CategorySection({
           key={item.id}
           item={item}
           onToggle={() => onToggle(item.id)}
+          onToggleOnSite={() => onToggleOnSite(item.id)}
           onLongPress={() => onItemLongPress(item.id)}
         />
       ))}

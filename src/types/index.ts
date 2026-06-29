@@ -3,6 +3,8 @@ export interface GigItem {
   label: string;
   categoryId: string;
   checked: boolean;
+  /** Already at the venue — counts as complete without being packed. Survives Reset Session. */
+  onSite?: boolean;
   /** Optional count; absent or 1 means a single item (no badge shown). */
   quantity?: number;
   /** Optional free-text note shown under the label. */

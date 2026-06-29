@@ -3,19 +3,25 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GigItem } from '../types';
 import { AppTheme } from '../constants/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { isComplete } from '../utils/itemStatus';
 
 interface Props {
   item: GigItem;
   onToggle: () => void;
+  onToggleOnSite: () => void;
   onLongPress: () => void;
 }
 
-export function ItemRow({ item, onToggle, onLongPress }: Props) {
+export function ItemRow({ item, onToggle, onToggleOnSite, onLongPress }: Props) {
   const theme = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
+  const complete = isComplete(item);
   return (
     <Pressable
-      style={[styles.row, item.checked && styles.rowChecked]}
+      style={[
+        styles.row,
+        item.checked ? styles.rowChecked : item.onSite ? styles.rowOnSite : null,
+      ]}
       onPress={onToggle}
       onLongPress={onLongPress}
       android_ripple={{ color: theme.colors.border }}
@@ -25,9 +31,7 @@ export function ItemRow({ item, onToggle, onLongPress }: Props) {
       </View>
       <View style={styles.body}>
         <View style={styles.labelRow}>
-          <Text style={[styles.label, item.checked && styles.labelChecked]}>
-            {item.label}
-          </Text>
+          <Text style={[styles.label, complete && styles.labelChecked]}>{item.label}</Text>
           {item.quantity && item.quantity > 1 ? (
             <View style={styles.qtyBadge}>
               <Text style={styles.qtyText}>×{item.quantity}</Text>
@@ -35,9 +39,16 @@ export function ItemRow({ item, onToggle, onLongPress }: Props) {
           ) : null}
         </View>
         {item.note ? (
-          <Text style={[styles.note, item.checked && styles.noteChecked]}>{item.note}</Text>
+          <Text style={[styles.note, complete && styles.noteChecked]}>{item.note}</Text>
         ) : null}
       </View>
+      <Pressable
+        style={[styles.onSitePill, item.onSite && styles.onSitePillActive]}
+        onPress={onToggleOnSite}
+        hitSlop={6}
+      >
+        <Text style={[styles.onSiteText, item.onSite && styles.onSiteTextActive]}>On-site</Text>
+      </Pressable>
     </Pressable>
   );
 }
@@ -56,6 +67,9 @@ const makeStyles = (theme: AppTheme) =>
   },
   rowChecked: {
     backgroundColor: theme.colors.checkedLight,
+  },
+  rowOnSite: {
+    backgroundColor: theme.colors.primaryLight,
   },
   checkbox: {
     width: 22,
@@ -110,5 +124,24 @@ const makeStyles = (theme: AppTheme) =>
   },
   noteChecked: {
     textDecorationLine: 'line-through',
+  },
+  onSitePill: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: 99,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  onSitePillActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  onSiteText: {
+    fontSize: theme.font.sm,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  onSiteTextActive: {
+    color: theme.colors.onPrimary,
   },
 });

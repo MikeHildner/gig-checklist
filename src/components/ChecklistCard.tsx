@@ -4,6 +4,7 @@ import { GigChecklist } from '../types';
 import { AppTheme } from '../constants/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { formatLastPacked } from '../utils/formatDate';
+import { isComplete } from '../utils/itemStatus';
 
 interface Props {
   list: GigChecklist;
@@ -15,9 +16,9 @@ export function ChecklistCard({ list, onPress, onLongPress }: Props) {
   const theme = useTheme();
   const styles = React.useMemo(() => makeStyles(theme), [theme]);
   const total = list.items.length;
-  const checked = list.items.filter((i) => i.checked).length;
-  const pct = total === 0 ? 0 : checked / total;
-  const allDone = total > 0 && checked === total;
+  const done = list.items.filter(isComplete).length;
+  const pct = total === 0 ? 0 : done / total;
+  const allDone = total > 0 && done === total;
 
   return (
     <Pressable
@@ -29,7 +30,7 @@ export function ChecklistCard({ list, onPress, onLongPress }: Props) {
       <View style={styles.top}>
         <Text style={styles.name}>{list.name}</Text>
         <Text style={[styles.badge, allDone && styles.badgeDone]}>
-          {allDone ? 'Ready ✓' : `${checked}/${total}`}
+          {allDone ? 'Ready ✓' : `${done}/${total}`}
         </Text>
       </View>
       <View style={styles.barTrack}>

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { GigChecklist, GigCategory, GigItem } from '../types';
 import { loadChecklists, saveChecklists } from '../storage';
 import { uuid } from '../utils/uuid';
+import { isComplete } from '../utils/itemStatus';
 
 interface ChecklistContextValue {
   lists: GigChecklist[];
@@ -12,6 +13,7 @@ interface ChecklistContextValue {
   moveList: (listId: string, direction: 'up' | 'down') => void;
   deleteList: (listId: string) => void;
   toggleItem: (listId: string, itemId: string) => void;
+  toggleOnSite: (listId: string, itemId: string) => void;
   addItem: (
     listId: string,
     label: string,
@@ -118,8 +120,22 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         const items = l.items.map((item) =>
           item.id === itemId ? { ...item, checked: !item.checked } : item
         );
-        const fullyPacked = items.length > 0 && items.every((i) => i.checked);
-        return { ...l, items, lastPackedAt: fullyPacked ? Date.now() : l.lastPackedAt };
+        const fullyReady = items.length > 0 && items.every(isComplete);
+        return { ...l, items, lastPackedAt: fullyReady ? Date.now() : l.lastPackedAt };
+      })
+    );
+  }
+
+  // "On-site" is a standing fact (gear left at the venue); Reset Session keeps it.
+  function toggleOnSite(listId: string, itemId: string) {
+    update(
+      lists.map((l) => {
+        if (l.id !== listId) return l;
+        const items = l.items.map((item) =>
+          item.id === itemId ? { ...item, onSite: !item.onSite } : item
+        );
+        const fullyReady = items.length > 0 && items.every(isComplete);
+        return { ...l, items, lastPackedAt: fullyReady ? Date.now() : l.lastPackedAt };
       })
     );
   }
@@ -310,6 +326,7 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
         moveList,
         deleteList,
         toggleItem,
+        toggleOnSite,
         addItem,
         updateItem,
         moveItem,

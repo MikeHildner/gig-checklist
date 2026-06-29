@@ -1,5 +1,6 @@
 import { Platform, Share } from 'react-native';
 import { GigChecklist, GigItem } from '../types';
+import { isComplete } from './itemStatus';
 
 /** Render a checklist as plain text suitable for messages, notes, or printing. */
 export function buildExportText(list: GigChecklist): string {
@@ -7,10 +8,11 @@ export function buildExportText(list: GigChecklist): string {
 
   const renderItems = (items: GigItem[]) => {
     items.forEach((i) => {
-      const box = i.checked ? '[x]' : '[ ]';
+      const box = isComplete(i) ? '[x]' : '[ ]';
       const qty = i.quantity && i.quantity > 1 ? ` x${i.quantity}` : '';
+      const onSite = i.onSite ? ' (on-site)' : '';
       const note = i.note ? ` - ${i.note}` : '';
-      lines.push(`${box} ${i.label}${qty}${note}`);
+      lines.push(`${box} ${i.label}${qty}${onSite}${note}`);
     });
   };
 
@@ -31,8 +33,8 @@ export function buildExportText(list: GigChecklist): string {
     lines.push('');
   }
 
-  const checked = list.items.filter((i) => i.checked).length;
-  lines.push(`${checked}/${list.items.length} packed`);
+  const ready = list.items.filter(isComplete).length;
+  lines.push(`${ready}/${list.items.length} ready`);
   return lines.join('\n');
 }
 
